@@ -64,7 +64,7 @@ func TestNew(t *testing.T) {
 	db, mock := mockDB(t)
 	defer db.Close()
 	tName := "sessions"
-	q := fmt.Sprintf(table, tName, tName)
+	q := fmt.Sprintf(table, tName)
 
 	cc := map[string]struct {
 		Expect   func()
@@ -85,7 +85,6 @@ func TestNew(t *testing.T) {
 			Expect: func() {
 				mock.ExpectExec(q).WillReturnResult(sqlmock.NewResult(0, 0))
 			},
-			Duration: 0,
 			Checks: checks(
 				hasErr(nil),
 				hasStore(tName, true, true, false),
@@ -144,7 +143,7 @@ func TestCreate(t *testing.T) {
 				mock.ExpectExec(q).
 					WithArgs(s.CreatedAt, s.ExpiresAt, s.ID, s.UserKey,
 						s.IP.String(), s.Agent.OS, s.Agent.Browser).
-					WillReturnError(&pq.Error{Constraint: "primary key"})
+					WillReturnError(&pq.Error{Constraint: fmt.Sprintf("%s_pkey", tName)})
 			},
 			Err: sessionup.ErrDuplicateID,
 		},
@@ -490,26 +489,6 @@ func TestDeleteExpired(t *testing.T) {
 	if err = mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("want nil, got %v", err)
 	}
-}
-
-func TestStartCleanup(t *testing.T) {
-	//db, mock := mockDB(t)
-	//defer db.Close()
-	//tName := "sessions"
-	//pg := PgStore{db: db, tName: tName, errChan: make(chan error)}
-	//q := fmt.Sprintf("DELETE FROM %s WHERE expires_at < CURRENT_TIMESTAMP;", tName)
-
-	//mock.ExpectExec(q).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	//go pg.startCleanup(time.Millisecond * 50)
-	//pg.StopCleanup()
-	//if err := <-pg.errChan; err != nil {
-	//t.Errorf("want nil, got %v", err)
-	//}
-
-	//if err := mock.ExpectationsWereMet(); err != nil {
-	//t.Errorf("want nil, got %v", err)
-	//}
 }
 
 func TestSetNullString(t *testing.T) {

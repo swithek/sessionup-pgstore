@@ -19,8 +19,7 @@ const table = `CREATE TABLE IF NOT EXISTS %s (
 	ip TEXT,
 	agent_os TEXT,
 	agent_browser TEXT
-);
-CREATE INDEX expiration ON %s (expires_at);`
+);`
 
 // PgStore is a PostgreSQL implementation of sessionup.Store.
 type PgStore struct {
@@ -33,14 +32,13 @@ type PgStore struct {
 // New returns a fresh instance of PgStore.
 // tName parameter determines the name of the table that
 // will be used for sessions. If it does not exist, it will
-// be created. It is better not to attempt to create this
-// table externally.
+// be created.
 // Duration parameter determines how often the cleanup
 // function wil be called to remove the expired sessions.
 // Setting it to 0 will prevent cleanup from being activated.
 func New(db *sql.DB, tName string, d time.Duration) (*PgStore, error) {
 	p := &PgStore{db: db, tName: tName, errChan: make(chan error)}
-	_, err := p.db.Exec(fmt.Sprintf(table, p.tName, p.tName))
+	_, err := p.db.Exec(fmt.Sprintf(table, p.tName))
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +54,7 @@ func (p *PgStore) Create(ctx context.Context, s sessionup.Session) error {
 	q := fmt.Sprintf("INSERT INTO %s VALUES ($1, $2, $3, $4, $5, $6, $7);", p.tName)
 	_, err := p.db.ExecContext(ctx, q, s.CreatedAt, s.ExpiresAt, s.ID, s.UserKey,
 		setNullString(s.IP.String()), setNullString(s.Agent.OS), setNullString(s.Agent.Browser))
-	if perr, ok := err.(*pq.Error); ok && perr.Constraint == "primary key" {
+	if perr, ok := err.(*pq.Error); ok && perr.Constraint == fmt.Sprintf("%s_pkey", p.tName) {
 		return sessionup.ErrDuplicateID
 	}
 	return err
