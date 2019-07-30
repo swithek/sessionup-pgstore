@@ -18,6 +18,15 @@ import (
 
 var terr = errors.New("error")
 
+func TestType(t *testing.T) {
+	defer func() {
+		if err := recover(); err != nil {
+			t.Fatalf("want nil, got %v", err)
+		}
+	}()
+	var _ sessionup.Store = &PgStore{}
+}
+
 func TestNew(t *testing.T) {
 	type check func(*testing.T, *PgStore, error)
 
