@@ -6,6 +6,11 @@
 
 PostgreSQL session store implementation for [sessionup](https://github.com/swithek/sessionup)
 
+## Installation
+```
+go get github.com/swithek/sessionup-pgstore
+```
+
 ## Usage
 Create and activate a new PgStore:
 ```go
