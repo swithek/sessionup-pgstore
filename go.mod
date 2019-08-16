@@ -1,4 +1,4 @@
-module github.com/swithek/pgstore
+module github.com/swithek/sessionup-pgstore
 
 go 1.12
 
